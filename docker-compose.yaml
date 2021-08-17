@@ -1,0 +1,31 @@
+version: "3.9" # optional since v1.27.0
+services:
+  web:
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    command: sh -c './wait-for.sh db:5432 -- npm run dev'
+    environment:
+      FASTIFY_PORT: 3001
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: goshenite
+    depends_on:
+      - db
+    ports:
+      - "3001:3001" # dev server port
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  db:
+    image: postgres:13.4-alpine
+    environment:
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: goshenite
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  data:

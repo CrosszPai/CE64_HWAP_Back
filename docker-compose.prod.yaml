@@ -1,0 +1,11 @@
+version: "3.9"  # optional since v1.27.0
+services:
+  web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    environment: 
+      FASTIFY_PORT: 3001
+    command: npm run start
+    ports:
+      - "3001:3001" # server portE
