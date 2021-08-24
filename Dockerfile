@@ -16,6 +16,8 @@ WORKDIR /app
 
 COPY package.json .
 
+COPY wait-for.sh .
+
 RUN npm i --only=prod
 
 COPY --from=BUILDER /app/dist /app/dist

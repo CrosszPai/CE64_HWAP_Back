@@ -1,10 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
 import { getGraphQLParameters, processRequest } from "graphql-helix";
-// import {
-//   getGraphQLParameters,
-//   renderGraphiQL,
-//   shouldRenderGraphiQL,
-// } from "graphql-helix";
 
 const graphqlRoutes: FastifyPluginAsync = async (
   fastify,

@@ -6,6 +6,20 @@ services:
       dockerfile: Dockerfile
     environment: 
       FASTIFY_PORT: 3001
-    command: npm run start
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: goshenite
+    command: sh -c './wait-for.sh db:5432 -- npm run start'
     ports:
-      - "3001:3001" # server portE
+      - "3001:3001" # server port
+  db:
+    image: postgres:13.4-alpine
+    environment:
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: goshenite
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  data:
