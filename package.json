@@ -17,14 +17,18 @@
   "license": "ISC",
   "dependencies": {
     "class-validator": "^0.13.1",
+    "cookie": "^0.4.1",
     "fastify": "^3.0.0",
     "fastify-autoload": "^3.3.1",
     "fastify-cli": "^2.13.0",
+    "fastify-cookie": "^5.3.1",
+    "fastify-cors": "^6.0.2",
     "fastify-plugin": "^3.0.0",
     "fastify-sensible": "^3.1.0",
     "graphiql-explorer": "^0.6.3",
     "graphql": "^15.5.1",
     "graphql-helix": "^1.7.0",
+    "octokit": "^1.4.0",
     "pg": "^8.7.1",
     "reflect-metadata": "^0.1.13",
     "type-graphql": "^1.1.1",
@@ -33,6 +37,7 @@
     "typeorm-typedi-extensions": "^0.4.1"
   },
   "devDependencies": {
+    "@types/cookie": "^0.4.1",
     "@types/node": "^15.0.0",
     "@types/tap": "^15.0.0",
     "concurrently": "^6.0.0",
