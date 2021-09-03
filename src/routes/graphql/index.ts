@@ -1,6 +1,8 @@
 import { FastifyPluginAsync } from "fastify";
 import { getGraphQLParameters, processRequest } from "graphql-helix";
-
+import * as cookie from "cookie";
+import { AppContext } from "../../type";
+import { Octokit } from "octokit";
 const graphqlRoutes: FastifyPluginAsync = async (
   fastify,
   opts: any
@@ -13,6 +15,19 @@ const graphqlRoutes: FastifyPluginAsync = async (
       variables,
       request,
       schema: opts.schema,
+      contextFactory: () => {
+        const access_token = cookie.parse(
+          request.headers["set-cookie"]?.[0] ?? ""
+        ).access_token;
+        if (access_token) {
+          return {
+            userOctokit: new Octokit({ auth: access_token }),
+          } as AppContext;
+        }
+        return {
+          userOctokit: null,
+        };
+      },
     });
 
     if (result.type === "RESPONSE") {
