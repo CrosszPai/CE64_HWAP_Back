@@ -1,4 +1,4 @@
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { UserRepository } from "../repository/user.repository";
@@ -11,6 +11,7 @@ class UserResolver {
   constructor(
     @InjectRepository() private readonly userRepository: UserRepository
   ) {}
+  @Authorized()
   @Query((returns) => User, { nullable: true })
   async user(@Ctx() ctx: AppContext): Promise<User | undefined> {
     const octokit = ctx.userOctokit;
@@ -29,7 +30,7 @@ class UserResolver {
     }
     return user;
   }
-  
+
   @Mutation((returns) => User)
   async createUser(@Arg("name") name: string) {
     return this.userRepository.save({ name });
