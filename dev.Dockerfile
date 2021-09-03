@@ -8,4 +8,6 @@ RUN npm i
 
 COPY . .
 
+RUN chmod +x /app/wait-for.sh
+
 CMD [ "npm","run","dev","--port=3001"]

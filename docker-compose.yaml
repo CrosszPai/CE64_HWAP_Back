@@ -4,11 +4,9 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
-    command: sh -c './wait-for.sh db:5432 -- npm run dev'
-    environment:
-      FASTIFY_PORT: 3001
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: goshenite
+    command: sh -c '/app/wait-for.sh db:5432 -- npm run dev'
+    env_file: 
+      - .env
     depends_on:
       - db
     ports:

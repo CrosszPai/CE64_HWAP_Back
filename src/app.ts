@@ -6,6 +6,7 @@ import { buildSchema } from "type-graphql";
 
 import * as TypeORM from "typeorm";
 import { Container } from "typeorm-typedi-extensions";
+import { AppAuthChecker } from "./authorization";
 
 TypeORM.useContainer(Container);
 
@@ -21,6 +22,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
   let schema = await buildSchema({
     resolvers: [__dirname + "/**/*.resolver.{ts,js}"],
     container: Container,
+    authChecker: AppAuthChecker,
   });
   const options = { ...opts, schema };
 
