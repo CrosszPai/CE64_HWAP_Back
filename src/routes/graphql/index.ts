@@ -3,16 +3,25 @@ import { getGraphQLParameters, processRequest } from "graphql-helix";
 import * as cookie from "cookie";
 import { AppContext } from "../../type";
 import { Octokit } from "octokit";
+import { processRequest as uploadProcessRequest } from "graphql-upload";
+
 const graphqlRoutes: FastifyPluginAsync = async (
   fastify,
   opts: any
 ): Promise<void> => {
   fastify.all("/", async function (request, reply) {
-    const { operationName, query, variables } = getGraphQLParameters(request);
+    let operator = {};
+    if (request.is("multipart")) {
+      console.log('asd');
+      
+      operator = await uploadProcessRequest(request.raw, reply.raw);
+      // request.raw.on('close',()=>)
+    } else {
+      operator = getGraphQLParameters(request);
+    }
+
     const result = await processRequest({
-      operationName,
-      query,
-      variables,
+      ...operator,
       request,
       schema: opts.schema,
       contextFactory: () => {
