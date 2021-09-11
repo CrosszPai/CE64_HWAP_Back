@@ -1,7 +1,10 @@
+import { createWriteStream } from "fs";
+import { FileUpload, GraphQLUpload } from "graphql-upload";
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { UserRepository } from "../repository/user.repository";
+import { UploadInformation } from "../schema/upload.schema";
 import User from "../schema/user.schema";
 import { AppContext } from "../type";
 
@@ -31,7 +34,7 @@ class UserResolver {
     return user;
   }
 
-  @Mutation((returns) => User)
+  @Mutation((returns) => User, { description: "create user" })
   async createUser(@Arg("name") name: string) {
     return this.userRepository.save({ name });
   }
@@ -39,6 +42,25 @@ class UserResolver {
   @Query((returns) => [User])
   async users() {
     return this.userRepository.find();
+  }
+
+  @Mutation(() => UploadInformation)
+  async uploadFile(
+    @Arg("file", () => GraphQLUpload) file: FileUpload
+  ): Promise<UploadInformation> {
+    console.log(file.filename);
+
+    return new Promise((resolve, reject) => {
+      file
+        .createReadStream()
+        .pipe(createWriteStream(`/app/storage/${file.filename}`))
+        .on("finish", () => {
+          resolve(file);
+        })
+        .on("error", (error) => {
+          console.log(error.message);
+        });
+    });
   }
 }
 
