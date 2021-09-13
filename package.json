@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.21.4",
     "class-validator": "^0.13.1",
     "cookie": "^0.4.1",
     "fastify": "^3.0.0",
@@ -26,6 +27,7 @@
     "fastify-multipart": "^4.0.7",
     "fastify-plugin": "^3.0.0",
     "fastify-sensible": "^3.1.0",
+    "form-data": "^4.0.0",
     "graphiql-explorer": "^0.6.3",
     "graphql": "^15.5.1",
     "graphql-helix": "^1.7.0",
@@ -39,6 +41,7 @@
     "typeorm-typedi-extensions": "^0.4.1"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.0",
     "@types/cookie": "^0.4.1",
     "@types/graphql-upload": "^8.0.7",
     "@types/node": "^15.0.0",
