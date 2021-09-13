@@ -14,24 +14,19 @@ class UserResolver {
   @Authorized()
   @Query((returns) => User, { nullable: true })
   async user(@Ctx() ctx: AppContext): Promise<User | undefined> {
-    const octokit = ctx.userOctokit;
-    const githubUser = (await octokit.request("GET /user")).data as User;
-    const user = await this.userRepository.findOne({ id: githubUser.id });
-    console.log(githubUser);
-
-    if (!user) {
+    if (!ctx.user && ctx.githubUser) {
       const user = this.userRepository.create({
-        id: githubUser.id,
-        email: githubUser.email,
-        name: githubUser.name,
+        id: ctx.githubUser.id,
+        email: ctx.githubUser.email,
+        name: ctx.githubUser.name,
         entered_at: new Date(),
       });
       return await this.userRepository.save(user);
     }
-    return user;
+    return ctx.user;
   }
 
-  @Mutation((returns) => User)
+  @Mutation((returns) => User, { description: "create user" })
   async createUser(@Arg("name") name: string) {
     return this.userRepository.save({ name });
   }
