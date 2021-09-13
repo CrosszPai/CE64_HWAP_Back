@@ -4,6 +4,8 @@ import * as cookie from "cookie";
 import { AppContext } from "../../type";
 import { Octokit } from "octokit";
 import { processRequest as uploadProcessRequest } from "graphql-upload";
+import { getRepository } from "typeorm";
+import User from "../../schema/user.schema";
 
 const graphqlRoutes: FastifyPluginAsync = async (
   fastify,
@@ -12,30 +14,30 @@ const graphqlRoutes: FastifyPluginAsync = async (
   fastify.all("/", async function (request, reply) {
     let operator = {};
     if (request.is("multipart")) {
-      console.log('asd');
-      
       operator = await uploadProcessRequest(request.raw, reply.raw);
-      // request.raw.on('close',()=>)
     } else {
       operator = getGraphQLParameters(request);
     }
 
-    const result = await processRequest({
+    const result = await processRequest<AppContext>({
       ...operator,
       request,
       schema: opts.schema,
-      contextFactory: () => {
+      contextFactory: async () => {
         const access_token = cookie.parse(
           request.headers["set-cookie"]?.[0] ?? ""
         ).access_token;
         if (access_token) {
+          const octokit = new Octokit({ auth: access_token });
+          const githubUser = (await octokit.request("GET /user")).data as User;
+          const user = await getRepository(User).findOne({ id: githubUser.id });
           return {
-            userOctokit: new Octokit({ auth: access_token }),
-          } as AppContext;
+            userOctokit: octokit,
+            user,
+            githubUser,
+          };
         }
-        return {
-          userOctokit: null,
-        };
+        return {};
       },
     });
 
