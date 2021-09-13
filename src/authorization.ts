@@ -11,14 +11,14 @@ export const AppAuthChecker: AuthChecker<AppContext> = async (
   const octokit = context.userOctokit;
   let githubUser;
   try {
-    githubUser = (await octokit.request("GET /user")).data;
+    githubUser = (await octokit?.request("GET /user"))?.data;
   } catch (error) {
     return false;
   }
   if (roles.length === 0) {
     return true;
   }
-  const user = await repository.findOne({ id: githubUser.id });
+  const user = await repository.findOne({ id: githubUser?.id });
   if (!user || !user.role) {
     return false;
   }
