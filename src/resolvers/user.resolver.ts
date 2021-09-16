@@ -15,7 +15,7 @@ class UserResolver {
   @Query((returns) => User, { nullable: true })
   async user(@Ctx() ctx: AppContext): Promise<User | undefined> {
     const octokit = ctx.userOctokit;
-    const githubUser = (await octokit.request("GET /user")).data as User;
+    const githubUser = (await octokit.request("GET /user")).data as any;
     const user = await this.userRepository.findOne({ id: githubUser.id });
     console.log(githubUser);
 

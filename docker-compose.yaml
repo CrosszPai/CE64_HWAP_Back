@@ -4,8 +4,8 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
-    command: sh -c '/app/wait-for.sh db:5432 -- npm run dev'
-    env_file: 
+    command: npm run dev
+    env_file:
       - .env
     depends_on:
       - db
@@ -17,13 +17,12 @@ services:
 
   db:
     image: postgres:13.4-alpine
-    environment:
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: goshenite
+    env_file:
+      - .env
     volumes:
       - data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5555:5432"
 
 volumes:
   data:
