@@ -9,7 +9,7 @@ import User from "../../schema/user.schema";
 import renderAltair, { RenderOptions } from "altair-static";
 
 const renderOptions: RenderOptions = {
-  endpointURL: 'http://localhost:3001/graphql',
+  endpointURL: process.env.NODE_ENV === 'production' ? process.env.PUBLIC_GRAPHQL_URL : 'http://localhost:3001/graphql',
 };
 const altairAsString = renderAltair(renderOptions);
 
