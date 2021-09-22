@@ -7,11 +7,15 @@ import { buildSchema } from "type-graphql";
 import * as TypeORM from "typeorm";
 import { Container } from "typeorm-typedi-extensions";
 import { AppAuthChecker } from "./authorization";
+import { createClient } from "redis";
+import { GraphQLSchema } from "graphql";
 
 TypeORM.useContainer(Container);
 
 export type AppOptions = {
   // Place your custom options for app below here.
+  schema: GraphQLSchema
+  redis: ReturnType<typeof createClient>
 } & Partial<AutoloadPluginOptions>;
 
 const app: FastifyPluginAsync<AppOptions> = async (
@@ -19,12 +23,19 @@ const app: FastifyPluginAsync<AppOptions> = async (
   opts
 ): Promise<void> => {
   // Place here your custom code!
+  const redis = createClient({
+    socket: {
+      url: 'redis://redis:6379/0'
+    }
+  })
+  await redis.connect()
+
   let schema = await buildSchema({
     resolvers: [__dirname + "/**/*.resolver.{ts,js}"],
     container: Container,
     authChecker: AppAuthChecker,
   });
-  const options = { ...opts, schema };
+  const options = { ...opts, schema, redis };
 
   await TypeORM.createConnection({
     name: "default",
