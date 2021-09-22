@@ -30,8 +30,8 @@ services:
       - 'traefik.http.routers.traefik.tls.certresolver=let'
       - 'traefik.http.routers.traefik.service=api@internal'
       - 'traefik.http.services.api@internal.loadbalancer.server.port=8080' # Required in swarms, https://doc.traefik.io/traefik/v2.0/routing/providers/docker/#services
-      - 'traefik.http.routers.traefik.middlewares=traefik-auth'
-      - 'traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USER_PASS}'
+      # - 'traefik.http.routers.traefik.middlewares=traefik-auth'
+      # - 'traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USER_PASS}'
     env_file: 
       - .env
   graphql:
@@ -40,6 +40,8 @@ services:
       dockerfile: Dockerfile
     env_file: 
       - .env
+    environment: 
+      - NODE_ENV=production
     command: sh -c './wait-for.sh db:5432 -- npm run start'
     ports:
       - "3001:3001" # server port
