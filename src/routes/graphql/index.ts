@@ -1,33 +1,28 @@
 import { FastifyPluginAsync } from "fastify";
 import { getGraphQLParameters, processRequest } from "graphql-helix";
-import * as cookie from "cookie";
 import { AppContext } from "../../type";
-import { Octokit } from "octokit";
-const graphqlRoutes: FastifyPluginAsync = async (
+import { processRequest as uploadProcessRequest } from "graphql-upload";
+import { AppOptions } from "../../app";
+import { appContextBuild } from "../../utils/appContextBuild";
+
+
+const graphqlRoutes: FastifyPluginAsync<AppOptions> = async (
   fastify,
-  opts: any
+  opts
 ): Promise<void> => {
   fastify.all("/", async function (request, reply) {
-    const { operationName, query, variables } = getGraphQLParameters(request);
-    const result = await processRequest({
-      operationName,
-      query,
-      variables,
+    let operator = {};
+    if (request.is("multipart")) {
+      operator = await uploadProcessRequest(request.raw, reply.raw);
+    } else {
+      operator = getGraphQLParameters(request);
+    }
+
+    const result = await processRequest<AppContext>({
+      ...operator,
       request,
       schema: opts.schema,
-      contextFactory: () => {
-        const access_token = cookie.parse(
-          request.headers["set-cookie"]?.[0] ?? ""
-        ).access_token;
-        if (access_token) {
-          return {
-            userOctokit: new Octokit({ auth: access_token }),
-          } as AppContext;
-        }
-        return {
-          userOctokit: null,
-        };
-      },
+      contextFactory: async () => await appContextBuild(request, { redis: opts.redis })
     });
 
     if (result.type === "RESPONSE") {
