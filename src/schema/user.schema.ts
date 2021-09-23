@@ -1,5 +1,6 @@
 import { Field, ObjectType } from "type-graphql";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn, OneToMany } from "typeorm";
+import Lab from './lab.schema'
 
 export enum Role {
   instructor = "instructor",
@@ -28,6 +29,9 @@ export class User {
   @Field((type) => String)
   @Column({ type: "enum", nullable: true, enum: Role })
   role?: Role = Role.student;
+
+  @OneToMany(()=>Lab, lab => lab.owner)
+  labs?: Lab[]
 }
 
 export default User;
