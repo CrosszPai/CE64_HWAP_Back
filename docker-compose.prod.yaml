@@ -30,6 +30,7 @@ services:
       - 'traefik.http.routers.traefik.tls.certresolver=let'
       - 'traefik.http.routers.traefik.service=api@internal'
       - 'traefik.http.services.api@internal.loadbalancer.server.port=8080' # Required in swarms, https://doc.traefik.io/traefik/v2.0/routing/providers/docker/#services
+      - 'traefik.http.middlewares.sslheader.headers.customrequestheaders.X-Forwarded-Proto = https'
       # - 'traefik.http.routers.traefik.middlewares=traefik-auth'
       # - 'traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USER_PASS}'
     env_file: 
@@ -47,12 +48,13 @@ services:
       - "3001:3001" # server port
     labels:
       - traefik.enable=true
-      - traefik.http.routers.graphql.rule=Host(`graphql.${DOMAIN_NAME}`)
+      - traefik.http.routers.graphql.rule=Host(`api.${DOMAIN_NAME}`)
       - traefik.http.routers.graphql.tls=true
       - traefik.http.services.graphql.loadbalancer.server.port=3001
       - traefik.http.routers.graphql.entrypoints=websecure
       - traefik.http.routers.graphql.tls.certresolver=let
-
+  redis:
+    image: redis:6.2.5-alpine
   db:
     image: postgres:13.4-alpine
     env_file: 
