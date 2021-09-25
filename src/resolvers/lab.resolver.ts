@@ -1,3 +1,4 @@
+import assert = require("assert");
 import { Arg, Authorized, Mutation, Query, Resolver, Ctx } from "type-graphql";
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
@@ -13,7 +14,7 @@ class LabResolver {
   constructor(
     @InjectRepository() private readonly LabRepository: LabRepository,
     @InjectRepository() private readonly userRepository: UserRepository
-  ) {}
+  ) { }
 
   @Query((returns) => Lab)
   async lab(@Arg("id") id: number) {
@@ -35,6 +36,7 @@ class LabResolver {
   @Query((returns) => [Lab])
   async selfLabs(@Ctx() ctx: AppContext) {
     const octokit = ctx.userOctokit;
+    assert(octokit,"Unauthorize")
     const githubUser = (await octokit.request("GET /user")).data as any;
     const user = await this.userRepository.findOne({ id: githubUser.id });
     if (user?.id) {
@@ -58,6 +60,7 @@ class LabResolver {
     @Ctx() ctx: AppContext
   ) {
     const octokit = ctx.userOctokit;
+    assert(octokit,"Unauthorize")
     const githubUser = (await octokit.request("GET /user")).data as any;
     const user = await this.userRepository.findOne({ id: githubUser.id });
     return await this.LabRepository.save({ lab_name, lab_detail, owner: user });

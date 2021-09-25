@@ -24,9 +24,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 ): Promise<void> => {
   // Place here your custom code!
   const redis = createClient({
-    socket: {
-      url: 'redis://redis:6379/0'
-    }
+    url: 'redis://redis:6379/0',
   })
   await redis.connect()
 
