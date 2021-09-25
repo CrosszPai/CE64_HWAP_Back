@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "altair-static": "^4.0.9",
     "axios": "^0.21.4",
     "class-validator": "^0.13.1",
     "cookie": "^0.4.1",
@@ -27,6 +28,7 @@
     "fastify-multipart": "^4.0.7",
     "fastify-plugin": "^3.0.0",
     "fastify-sensible": "^3.1.0",
+    "fastify-static": "^4.2.3",
     "fastify-websocket": "^4.0.0",
     "form-data": "^4.0.0",
     "graphiql-explorer": "^0.6.3",
