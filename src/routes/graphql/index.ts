@@ -1,21 +1,21 @@
 import { FastifyPluginAsync } from "fastify";
 import { getGraphQLParameters, processRequest, shouldRenderGraphiQL } from "graphql-helix";
-import * as cookie from "cookie";
 import { AppContext } from "../../type";
-import { Octokit } from "octokit";
 import { processRequest as uploadProcessRequest } from "graphql-upload";
-import { getRepository } from "typeorm";
-import User from "../../schema/user.schema";
 import renderAltair, { RenderOptions } from "altair-static";
+import { AppOptions } from "../../app";
+import { appContextBuild } from "../../utils/appContextBuild";
 
 const renderOptions: RenderOptions = {
   endpointURL: process.env.NODE_ENV === 'production' ? process.env.PUBLIC_GRAPHQL_URL : 'http://localhost:3001/graphql',
 };
 const altairAsString = renderAltair(renderOptions);
 
-const graphqlRoutes: FastifyPluginAsync = async (
+
+
+const graphqlRoutes: FastifyPluginAsync<AppOptions> = async (
   fastify,
-  opts: any
+  opts
 ): Promise<void> => {
   fastify.all("/", async function (request, reply) {
 
@@ -34,25 +34,7 @@ const graphqlRoutes: FastifyPluginAsync = async (
       ...operator,
       request,
       schema: opts.schema,
-      contextFactory: async () => {
-        let access_token = cookie.parse(
-          request.headers["set-cookie"]?.[0] ?? ""
-        ).access_token;
-        if (!access_token) {
-          access_token = request.headers.authorization ?? ""
-        }
-        if (access_token) {
-          const octokit = new Octokit({ auth: access_token });
-          const githubUser = (await octokit.request("GET /user")).data as User;
-          const user = await getRepository(User).findOne({ id: githubUser.id });
-          return {
-            userOctokit: octokit,
-            user,
-            githubUser,
-          };
-        }
-        return {};
-      },
+      contextFactory: async () => await appContextBuild(request, { redis: opts.redis })
     });
 
     if (result.type === "RESPONSE") {

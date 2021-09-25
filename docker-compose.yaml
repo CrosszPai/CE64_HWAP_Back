@@ -41,13 +41,16 @@ services:
 
   db:
     image: postgres:13.4-alpine
-    environment:
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: goshenite
+    env_file:
+      - .env
     volumes:
       - data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  redis:
+    image: redis:6.2.5-alpine
+    ports:
+      - "6379:6379"
   # file server
   master:
     image: chrislusf/seaweedfs # use a remote image
