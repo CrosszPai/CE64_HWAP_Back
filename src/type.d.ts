@@ -1,7 +1,7 @@
 import { Octokit } from "octokit";
 import User from "./schema/user.schema";
 
-type AppContext = {
+interface AppContext {
   /**
    * @desc octokit created by user used for interact with github
    */
