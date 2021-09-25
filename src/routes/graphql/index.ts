@@ -1,9 +1,16 @@
 import { FastifyPluginAsync } from "fastify";
-import { getGraphQLParameters, processRequest } from "graphql-helix";
+import { getGraphQLParameters, processRequest, shouldRenderGraphiQL } from "graphql-helix";
 import { AppContext } from "../../type";
 import { processRequest as uploadProcessRequest } from "graphql-upload";
+import renderAltair, { RenderOptions } from "altair-static";
 import { AppOptions } from "../../app";
 import { appContextBuild } from "../../utils/appContextBuild";
+
+const renderOptions: RenderOptions = {
+  endpointURL: process.env.NODE_ENV === 'production' ? process.env.PUBLIC_GRAPHQL_URL : 'http://localhost:3001/graphql',
+};
+const altairAsString = renderAltair(renderOptions);
+
 
 
 const graphqlRoutes: FastifyPluginAsync<AppOptions> = async (
@@ -11,10 +18,15 @@ const graphqlRoutes: FastifyPluginAsync<AppOptions> = async (
   opts
 ): Promise<void> => {
   fastify.all("/", async function (request, reply) {
+
     let operator = {};
     if (request.is("multipart")) {
       operator = await uploadProcessRequest(request.raw, reply.raw);
     } else {
+      if (shouldRenderGraphiQL(request)) {
+
+        reply.type('text/html').send(altairAsString)
+      }
       operator = getGraphQLParameters(request);
     }
 
