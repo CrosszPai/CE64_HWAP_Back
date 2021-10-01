@@ -1,6 +1,7 @@
 import { Octokit } from "octokit";
 import User from "./schema/user.schema";
-
+import {User as GithubUser} from '@octokit/webhooks-types/schema'
+import { createClient } from "redis";
 interface AppContext {
   /**
    * @desc octokit created by user used for interact with github
@@ -15,5 +16,9 @@ interface AppContext {
   /**
    * @desc current request user github data
    */
-  githubUser?: User;
+  githubUser?: GithubUser;
+
+  private_key?: string
+
+  redis: ReturnType<typeof createClient>
 };

@@ -5,6 +5,7 @@ import Lab from './lab.schema'
 export enum Role {
   instructor = "instructor",
   student = "student",
+  admin = "admin"
 }
 
 @ObjectType()
