@@ -10,14 +10,14 @@ import { AppContext } from "../type";
 class UserResolver {
   constructor(
     @InjectRepository() private readonly userRepository: UserRepository
-  ) {}
+  ) { }
   @Authorized()
   @Query((returns) => User, { nullable: true })
   async user(@Ctx() ctx: AppContext): Promise<User | undefined> {
     if (!ctx.user && ctx.githubUser) {
       const user = this.userRepository.create({
         id: ctx.githubUser.id,
-        email: ctx.githubUser.email,
+        email: ctx.githubUser.email ?? undefined,
         name: ctx.githubUser.name,
         entered_at: new Date(),
       });
