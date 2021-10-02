@@ -34,7 +34,7 @@ const graphqlRoutes: FastifyPluginAsync<AppOptions> = async (
       ...operator,
       request,
       schema: opts.schema,
-      contextFactory: async () => await appContextBuild(request, { redis: opts.redis })
+      contextFactory: async () => await appContextBuild(request, opts)
     });
 
     if (result.type === "RESPONSE") {
