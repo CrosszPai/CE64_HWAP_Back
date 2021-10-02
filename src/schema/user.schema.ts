@@ -5,6 +5,7 @@ import Lab from './lab.schema'
 export enum Role {
   instructor = "instructor",
   student = "student",
+  admin = "admin"
 }
 
 @ObjectType()
@@ -30,8 +31,12 @@ export class User {
   @Column({ type: "enum", nullable: true, enum: Role })
   role?: Role = Role.student;
 
-  @OneToMany(()=>Lab, lab => lab.owner)
+  @OneToMany(() => Lab, lab => lab.owner)
   labs?: Lab[]
+
+  @Field(type => String)
+  @Column()
+  avatar_url?: string
 }
 
 export default User;

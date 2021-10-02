@@ -9,6 +9,10 @@ import { Container } from "typeorm-typedi-extensions";
 import { AppAuthChecker } from "./authorization";
 import { createClient } from "redis";
 import { GraphQLSchema } from "graphql";
+import { readFileSync } from "fs";
+
+const private_key = readFileSync('/app/pv-key.pem','utf-8')
+
 
 TypeORM.useContainer(Container);
 
@@ -16,6 +20,7 @@ export type AppOptions = {
   // Place your custom options for app below here.
   schema: GraphQLSchema
   redis: ReturnType<typeof createClient>
+  private_key: string,
 } & Partial<AutoloadPluginOptions>;
 
 const app: FastifyPluginAsync<AppOptions> = async (
@@ -33,7 +38,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
     container: Container,
     authChecker: AppAuthChecker,
   });
-  const options = { ...opts, schema, redis };
+  const options = { ...opts, schema, redis, private_key };
 
   await TypeORM.createConnection({
     name: "default",
