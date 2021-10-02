@@ -15,7 +15,9 @@ export class Hardware {
     @Field(type => String)
     status?: string
 
-    @Field(type => String)
-    @Column()
+    @Field(type => String, {
+        nullable: true
+    })
+    @Column({ nullable: true })
     working_id?: string
 }
