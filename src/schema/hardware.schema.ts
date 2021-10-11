@@ -1,6 +1,13 @@
 import { Field, ObjectType } from "type-graphql";
 import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
 
+export enum HardwareStatus {
+    CREATED = "CREATED",
+    IDLE = "IDLE",
+    BUSY = "BUSY",
+    DOWN = "DOWN"
+}
+
 @ObjectType()
 @Entity()
 export class Hardware {
@@ -10,7 +17,7 @@ export class Hardware {
 
     @Field(type => String)
     @CreateDateColumn()
-    createdAt?: string
+    created_at?: string
 
     @Field(type => String)
     status?: string
