@@ -1,8 +1,8 @@
-import { Authorized, Ctx, FieldResolver, Query, Resolver, Root } from "type-graphql";
+import { Arg, Authorized, Ctx, FieldResolver, Mutation, Query, Resolver, Root } from "type-graphql";
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { HardwareRepository } from "../repository/hardware.repository";
-import { Hardware } from "../schema/hardware.schema";
+import { Hardware, HardwareStatus } from "../schema/hardware.schema";
 import { Role } from "../schema/user.schema";
 import type { AppContext } from "../type";
 
@@ -20,7 +20,16 @@ class HardwareResolver {
 
     @FieldResolver()
     async status(@Ctx() ctx: AppContext, @Root() hardware: Hardware) {
-        return ctx.redis.get(hardware.id as string)
+        return ctx.redis.get(hardware.id as string) ?? HardwareStatus.IDLE
+    }
+
+    @Authorized(Role.admin)
+    @Mutation(returns => Hardware)
+    async addHardware(
+        @Ctx() ctx: AppContext,
+        @Arg('hwid') id: string) {
+        ctx.redis.set(id, HardwareStatus.CREATED)
+        return await this.hardwareRepository.save({ id })
     }
 }
 
