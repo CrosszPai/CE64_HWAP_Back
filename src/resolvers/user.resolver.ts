@@ -28,7 +28,6 @@ class UserResolver {
     }
     return ctx.user;
   }
-
   @Mutation((returns) => User, { description: "create user" })
   async createUser(@Arg("name") name: string) {
     return this.userRepository.save({ name });
