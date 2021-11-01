@@ -7,6 +7,9 @@ export class Repo {
 
   @Field((type) => String, { nullable: true })
   name?: string;
+
+  @Field((type) => String)
+  url?: string;
 }
 
 export default Repo;
