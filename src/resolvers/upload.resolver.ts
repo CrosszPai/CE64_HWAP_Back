@@ -12,6 +12,8 @@ export class UploadDev {
     @Arg("type", () => fileType, { nullable: true }) type: fileType,
     @Arg("id", () => ID, { nullable: true }) id: string
   ): Promise<UploadInformation> {
+    console.log(file);
+    
     try {
       await uploadFile([file], type, id);
     } catch (error) {

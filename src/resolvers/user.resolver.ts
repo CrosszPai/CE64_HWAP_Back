@@ -11,7 +11,7 @@ import Log from "../utils/loggingDocorator";
 class UserResolver {
   constructor(
     @InjectRepository() private readonly userRepository: UserRepository
-  ) { }
+  ) {}
   @Authorized()
   @Query((returns) => User, { nullable: true })
   @Log()
@@ -22,7 +22,9 @@ class UserResolver {
         email: ctx.githubUser.email ?? undefined,
         name: ctx.githubUser.name,
         entered_at: new Date(),
-        avatar_url: ctx.githubUser.avatar_url
+        avatar_url: ctx.githubUser.avatar_url,
+        is_admin:
+          process.env.ADMIN_EMAIL === ctx.githubUser.email ? true : false,
       });
       return await this.userRepository.save(user);
     }

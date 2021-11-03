@@ -4,21 +4,33 @@ import { FileUpload } from "graphql-upload";
 import { fileType } from "../enum/filetype.enum";
 import getFilePath from "./getFilePath";
 
-async function uploadFile(files: FileUpload[]): Promise<void>;
-async function uploadFile(files: FileUpload[], type: fileType): Promise<void>;
+type uploadedType = {
+  name: string;
+  size: number;
+  path: string;
+};
+
+async function uploadFile(files: FileUpload[]): Promise<uploadedType[]>;
+async function uploadFile(
+  files: FileUpload[],
+  type: fileType
+): Promise<uploadedType[]>;
 async function uploadFile(
   files: FileUpload[],
   type: fileType,
   id_of_type?: string
-): Promise<void>;
+): Promise<uploadedType[]>;
 
-async function uploadFile(files: FileUpload[], ...option: any): Promise<void> {
-  await Promise.all(
+async function uploadFile(
+  files: FileUpload[],
+  ...option: any
+): Promise<uploadedType[]> {
+  return await Promise.all(
     files.map(async (file) => {
       const stream = file.createReadStream();
       const form = new FormData();
       form.append("file", stream, Date.now() + file.filename);
-      return await axios.post(
+      const a = await axios.post(
         `http://filer:8888/${getFilePath(...option)}`,
         form,
         {
@@ -26,6 +38,9 @@ async function uploadFile(files: FileUpload[], ...option: any): Promise<void> {
           method: "POST",
         }
       );
+      a.data.path = getFilePath(...option) + a.data.name;
+
+      return a.data as uploadedType;
     })
   );
 }
