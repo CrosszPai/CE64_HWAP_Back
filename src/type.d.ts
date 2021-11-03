@@ -1,6 +1,6 @@
 import { Octokit } from "octokit";
 import User from "./schema/user.schema";
-import {User as GithubUser} from '@octokit/webhooks-types/schema'
+import { User as GithubUser } from '@octokit/webhooks-types/schema'
 import { createClient } from "redis";
 interface AppContext {
   /**
@@ -22,3 +22,9 @@ interface AppContext {
 
   redis: ReturnType<typeof createClient>
 };
+
+interface AppMessage {
+  id: string,
+  event: string,
+  payload: string,
+}
