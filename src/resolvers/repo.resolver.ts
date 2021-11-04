@@ -13,7 +13,6 @@ export class RepoResolver {
       privateKey: ctx.private_key as string,
     });
     try {
-
       let ins = await app.octokit.request(
         "GET /users/{username}/installation",
         {
@@ -22,7 +21,9 @@ export class RepoResolver {
       );
       let appi = await app.getInstallationOctokit(ins.data.id);
 
-      let repo = await appi.request("GET /installation/repositories");
+      let repo = await appi.request("GET /installation/repositories", {
+        per_page: 50,
+      });
       return repo.data.repositories;
     } catch (error) {
       throw new Error("Please install our apps first.");
