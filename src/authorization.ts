@@ -19,6 +19,9 @@ export const AppAuthChecker: AuthChecker<AppContext> = async (
     return true;
   }
   const user = await repository.findOne({ id: githubUser?.id });
+  if (user?.is_admin) {
+    return true;
+  }
   if (!user || !user.role) {
     return false;
   }

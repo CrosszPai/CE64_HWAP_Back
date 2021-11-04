@@ -1,11 +1,11 @@
 import { Field, ObjectType } from "type-graphql";
 import { Column, Entity, PrimaryColumn, OneToMany } from "typeorm";
-import Lab from './lab.schema'
+import Lab from "./lab.schema";
 
 export enum Role {
   instructor = "instructor",
   student = "student",
-  admin = "admin"
+  admin = "admin",
 }
 
 @ObjectType()
@@ -31,12 +31,15 @@ export class User {
   @Column({ type: "enum", nullable: true, enum: Role })
   role?: Role = Role.student;
 
-  @OneToMany(() => Lab, lab => lab.owner)
-  labs?: Lab[]
+  @OneToMany(() => Lab, (lab) => lab.owner)
+  labs?: Lab[];
 
-  @Field(type => String)
+  @Field((type) => String)
   @Column()
-  avatar_url?: string
+  avatar_url?: string;
+
+  @Column({ default: false })
+  is_admin: boolean = false;
 }
 
 export default User;

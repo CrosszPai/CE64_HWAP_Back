@@ -6,7 +6,13 @@ export class Repo {
   readonly id?: number;
 
   @Field((type) => String, { nullable: true })
-  name?: string;
+  readonly name?: string;
+
+  @Field((type) => String)
+  readonly url?: string;
+
+  @Field((type) => String)
+  readonly html_url?: string;
 }
 
 export default Repo;
