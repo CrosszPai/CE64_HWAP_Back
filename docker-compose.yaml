@@ -19,6 +19,12 @@ services:
       - "traefik.http.routers.dashboard.rule=Host(`localhost`)"
       - "traefik.http.routers.dashboard.entrypoints=web"
       - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
+  ci: 
+    build: 
+      context: ./ci
+      dockerfile: dev.Dockerfile
+    env_file:
+      - ./ci/.env
   api:
     build:
       context: .

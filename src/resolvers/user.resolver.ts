@@ -1,4 +1,13 @@
-import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import {
+  Arg,
+  Authorized,
+  Ctx,
+  FieldResolver,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+} from "type-graphql";
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { UserRepository } from "../repository/user.repository";
@@ -38,6 +47,11 @@ class UserResolver {
   @Query((returns) => [User])
   async users() {
     return this.userRepository.find();
+  }
+
+  @FieldResolver()
+  async role(@Root() user: User) {
+    return user.is_admin ? "admin" : user.role;
   }
 }
 
