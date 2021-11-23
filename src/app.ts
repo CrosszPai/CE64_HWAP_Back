@@ -10,6 +10,7 @@ import { AppAuthChecker } from "./authorization";
 import { createClient } from "redis";
 import { GraphQLSchema } from "graphql";
 import { readFileSync } from "fs";
+import WebSocket = require("ws");
 
 const private_key = readFileSync('/app/pv-key.pem','utf-8')
 
@@ -21,6 +22,7 @@ export type AppOptions = {
   schema: GraphQLSchema
   redis: ReturnType<typeof createClient>
   private_key: string,
+  websocket: WebSocket.Server
 } & Partial<AutoloadPluginOptions>;
 
 const app: FastifyPluginAsync<AppOptions> = async (

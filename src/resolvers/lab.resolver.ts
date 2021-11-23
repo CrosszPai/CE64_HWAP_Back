@@ -37,6 +37,7 @@ class LabResolver {
       where: {
         id,
       },
+      relations: ["assets"]
     });
   }
 
@@ -76,8 +77,6 @@ class LabResolver {
     assert(octokit, "Unauthorize");
     const githubUser = (await octokit.request("GET /user")).data as any;
     const user = await this.userRepository.findOne({ id: githubUser.id });
-
-    console.log(args);
 
     let lab = await this.labRepository.save({
       lab_name: args.lab_name,
@@ -123,6 +122,7 @@ class LabResolver {
       where: {
         published: true,
       },
+      relations: ["assets"]
     });
   }
 }

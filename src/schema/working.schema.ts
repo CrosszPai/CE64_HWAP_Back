@@ -16,7 +16,7 @@ export class Working {
   @PrimaryGeneratedColumn()
   id?: string;
 
-  @Field((type) => String)
+  @Field((type) => Lab)
   @ManyToOne((type) => Lab, { nullable: false })
   lab?: Lab;
 
