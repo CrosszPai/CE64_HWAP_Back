@@ -1,7 +1,8 @@
 import { Octokit } from "octokit";
 import User from "./schema/user.schema";
-import { User as GithubUser } from '@octokit/webhooks-types/schema'
+import { User as GithubUser } from "@octokit/webhooks-types/schema";
 import { createClient } from "redis";
+import WebSocket = require("ws");
 interface AppContext {
   /**
    * @desc octokit created by user used for interact with github
@@ -18,13 +19,14 @@ interface AppContext {
    */
   githubUser?: GithubUser;
 
-  private_key?: string
+  private_key?: string;
 
-  redis: ReturnType<typeof createClient>
-};
+  redis: ReturnType<typeof createClient>;
+  websocket: WebSocket.Server;
+}
 
 interface AppMessage {
-  id: string,
-  event: string,
-  payload: string,
+  id: string;
+  event: string;
+  payload: string;
 }
