@@ -21,10 +21,10 @@ services:
       - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
   ci: 
     build: 
-      context: ./ci
+      context: ./ci_server
       dockerfile: dev.Dockerfile
     env_file:
-      - ./ci/.env
+      - ./ci_server/.env
   api:
     build:
       context: .
