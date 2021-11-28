@@ -65,7 +65,7 @@ services:
       - 19333:19333
     command: "master -ip=master"
   volume:
-    image: chrislusf/seaweedfs # use a remote image
+    image: chrislusf/seaweedfs:latest # use a remote image
     ports:
       - 8081:8081
       - 18080:18080
@@ -74,7 +74,7 @@ services:
     depends_on:
       - master
   filer:
-    image: chrislusf/seaweedfs # use a remote image
+    image: chrislusf/seaweedfs:latest # use a remote image
     ports:
       - 8888:8888
       - 18888:18888
@@ -91,7 +91,7 @@ services:
       - "traefik.http.routers.filer.entrypoints=web"
       - "traefik.http.services.filer.loadbalancer.server.port=8888"
   cronjob:
-    image: chrislusf/seaweedfs # use a remote image
+    image: chrislusf/seaweedfs:latest # use a remote image
     command: "cronjob"
     environment:
       # Run re-replication every 2 minutes
