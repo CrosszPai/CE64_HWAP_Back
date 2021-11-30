@@ -21,3 +21,5 @@ COPY wait-for.sh .
 RUN npm i --only=prod
 
 COPY --from=BUILDER /app/dist /app/dist
+
+COPY ./pv-key.pem /app/pv-key.pem
