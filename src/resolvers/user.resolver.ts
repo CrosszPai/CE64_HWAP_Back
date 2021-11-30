@@ -11,7 +11,7 @@ import {
 import { Service } from "typedi";
 import { InjectRepository } from "typeorm-typedi-extensions";
 import { UserRepository } from "../repository/user.repository";
-import User from "../schema/user.schema";
+import User, { Role } from "../schema/user.schema";
 import { AppContext } from "../type";
 import Log from "../utils/loggingDocorator";
 
@@ -35,6 +35,9 @@ class UserResolver {
         is_admin:
           process.env.ADMIN_EMAIL === ctx.githubUser.email ? true : false,
       });
+      if(process.env.INSTRUCTOR_EMAIL === ctx.githubUser.email) {
+        user.role = Role.instructor;
+      }
       return await this.userRepository.save(user);
     }
     return ctx.user;
