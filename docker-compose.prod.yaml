@@ -35,6 +35,12 @@ services:
       # - 'traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_USER_PASS}'
     env_file: 
       - .env
+  ci: 
+    build: 
+      context: ./ci_server
+      dockerfile: dev.Dockerfile
+    env_file:
+      - ./ci_server/.env
   graphql:
     build: 
       context: .
