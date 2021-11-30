@@ -6,7 +6,7 @@ import {
   OneToOne,
   PrimaryColumn,
 } from "typeorm";
-import { Working } from "./working.schema";
+import { Queue } from "./queue.schema";
 
 export enum HardwareStatus {
   CREATED = "CREATED",
@@ -29,10 +29,10 @@ export class Hardware {
   @Field((type) => String)
   status?: string;
 
-  @Field((type) => String, {
+  @Field((type) => Queue, {
     nullable: true,
   })
-  @OneToOne(() => Working, { nullable: true })
+  @OneToOne(() => Queue, { nullable: true, eager: true })
   @JoinColumn()
-  working?: Working;
+  queue?: Queue;
 }

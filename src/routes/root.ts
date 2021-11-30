@@ -1,9 +1,10 @@
 import { FastifyPluginAsync } from "fastify";
+import { getRepository } from "typeorm";
 import { AppOptions } from "../app";
-import { HardwareStatus } from "../schema/hardware.schema";
+import { Hardware, HardwareStatus } from "../schema/hardware.schema";
+import { Queue, QueueStatus } from "../schema/queue.schema";
+import { Working } from "../schema/working.schema";
 import { AppMessage } from "../type";
-// import { getConnection } from 'typeorm'
-// import { Hardware, HardwareStatus } from '../schema/hardware.schema'
 
 const root: FastifyPluginAsync<AppOptions> = async (
   fastify,
@@ -40,18 +41,96 @@ const root: FastifyPluginAsync<AppOptions> = async (
     });
     res.send("asd");
   });
-  fastify.post("/hook", (req, res) => {
+  fastify.post("/hook", async (req, res) => {
     console.log(req.body);
-    req.server.websocketServer.clients.forEach((e) => {
-      e.send(
-        JSON.stringify({
-          id: "l4y0mwlS2r",
-          event: "income_work",
-          payload: (req.body as any).url,
-        } as AppMessage)
-      );
+    const working = await getRepository(Working).findOne({
+      where: {
+        repo_url: (req.body as any).url,
+      },
+    });
+    if (!working) {
+      res.send({
+        error: "working not found",
+      });
+      return;
+    }
+    // set all working queue status to cancel
+    await getRepository(Queue).update(
+      { working: working },
+      { status: QueueStatus.CANCELED }
+    );
+
+    // and create new queue
+    await getRepository(Queue).save({
+      working: working,
+      status: QueueStatus.WAITING,
     });
     res.send("");
+  });
+
+  fastify.get("/cron", async (req, res) => {
+    const queueRepository = getRepository(Queue);
+    const queues_count = await queueRepository.count({
+      where: { status: QueueStatus.WAITING },
+      order: { created_at: "ASC" },
+    });
+
+    const keys = await opts.redis.KEYS("*");
+    const _hardwares = await opts.redis.mGet(keys);
+
+    const hardwares = keys
+      .map((e, i) => {
+        return [e, _hardwares[i]];
+      })
+      .filter(([k, v]) => v === HardwareStatus.IDLE)
+      .map(([k, v]) => k as string);
+
+    console.log(hardwares);
+
+    if (hardwares.length === 0) {
+      return res.send("no idle hardware");
+    }
+    if (queues_count === 0) {
+      return res.send("no waiting queue");
+    }
+    // apply all queues to idle hardware
+    const queues = await queueRepository.find({
+      where: { status: QueueStatus.WAITING },
+      order: { created_at: "ASC" },
+    });
+    console.log(queues);
+    let assigned = await Promise.all(
+      hardwares.map(async (hardware, index) => {
+        opts.redis.set(hardware, HardwareStatus.BUSY);
+        console.log(hardware);
+
+        const hw = await getRepository(Hardware).findOne({
+          where: { id: hardware },
+        });
+        console.log(hw);
+
+        if (hw) {
+          queues[index].status = QueueStatus.WORKING;
+          hw.queue = queues[index];
+          await Promise.all([
+            getRepository(Hardware).save(hw),
+            queueRepository.save(queues[index]),
+          ]);
+          req.server.websocketServer.clients.forEach((e) => {
+            e.send(
+              JSON.stringify({
+                id: hardware,
+                event: "income_work",
+                payload: queues[index].working?.repo_url,
+              } as AppMessage)
+            );
+          });
+        }
+        return hardware;
+      })
+    );
+
+    res.send(assigned.length.toString() + " updated");
   });
 };
 

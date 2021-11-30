@@ -25,8 +25,6 @@ class HardwareResolver {
   @Query((returns) => [Hardware])
   async hardwares() {
     const hw = await this.hardwareRepository.find();
-    console.log(hw);
-    
     return hw;
   }
 
