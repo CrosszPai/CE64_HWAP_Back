@@ -38,7 +38,7 @@ services:
   ci: 
     build: 
       context: ./ci_server
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile
     env_file:
       - ./ci_server/.env
   graphql:
