@@ -8,23 +8,23 @@ import {
   Resolver,
   Root,
 } from "type-graphql";
-import { Service } from "typedi";
-import { InjectRepository } from "typeorm-typedi-extensions";
-import { LabRepository } from "../repository/lab.repository";
-import { QueueRepository } from "../repository/queue.repository";
-import { WorkingRepository } from "../repository/working.repository";
+import { Repository } from "typeorm";
+import Lab from "../schema/lab.schema";
 import { Queue, QueueStatus } from "../schema/queue.schema";
 import { Working } from "../schema/working.schema";
 import { AppContext } from "../type";
+import { db } from "../utils/db";
 
-@Service()
 @Resolver(Working)
 class WorkingResolver {
-  constructor(
-    @InjectRepository() private readonly WorkingRepository: WorkingRepository,
-    @InjectRepository() private readonly LabRepository: LabRepository,
-    @InjectRepository() private readonly QueueRepository: QueueRepository
-  ) {}
+  WorkingRepository: Repository<Working>;
+  LabRepository: Repository<Lab>;
+  QueueRepository: Repository<Queue>;
+  constructor() {
+    this.WorkingRepository = db.getRepository(Working);
+    this.LabRepository = db.getRepository(Lab);
+    this.QueueRepository = db.getRepository(Queue);
+  }
   @Authorized()
   @Mutation((returns) => Working)
   async addWorking(
@@ -32,7 +32,16 @@ class WorkingResolver {
     @Arg("lab") lab: string,
     @Arg("repo") repo: string
   ) {
-    const target = await this.LabRepository.findOne(lab);
+    const target = await this.LabRepository.findOne({
+      where: {
+        lab_name: lab,
+      },
+    });
+    // if target is not exist throw error
+    if (!target) {
+      throw new Error("Lab not found");
+    }
+    
     const working = await this.WorkingRepository.save({
       repo_url: repo,
       lab: target,

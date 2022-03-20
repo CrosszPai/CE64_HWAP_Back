@@ -10,34 +10,37 @@ import {
   FieldResolver,
   Root,
 } from "type-graphql";
-import { Service } from "typedi";
-import { InjectRepository } from "typeorm-typedi-extensions";
+import { Repository } from "typeorm";
 import { CreateLabArgs } from "../Args/createLab.args";
 import { fileType } from "../enum/filetype.enum";
-import { AssetsRepository } from "../repository/assets.repository";
-import { LabRepository } from "../repository/lab.repository";
-import { UserRepository } from "../repository/user.repository";
+import { Assets } from "../schema/assets.schema";
 import Lab from "../schema/lab.schema";
-import { Role } from "../schema/user.schema";
+import User, { Role } from "../schema/user.schema";
 import { AppContext } from "../type";
+import { db } from "../utils/db";
 import uploadFile from "../utils/uploadFile";
 
-@Service()
 @Resolver(Lab)
 class LabResolver {
+  labRepository: Repository<Lab>;
+  userRepository: Repository<User>;
+  assetRepository: Repository<Assets>
   constructor(
-    @InjectRepository() private readonly labRepository: LabRepository,
-    @InjectRepository() private readonly userRepository: UserRepository,
-    @InjectRepository() private readonly assetRepository: AssetsRepository
-  ) {}
+  ) {
+    this.labRepository = db.getRepository(Lab)
+    this.userRepository = db.getRepository(User)
+    this.assetRepository = db.getRepository(Assets)
+  }
 
   @Query((returns) => Lab)
   async lab(@Arg("id") id: number) {
     return await this.labRepository.findOne({
       where: {
-        id,
+        id
       },
-      relations: ["assets"]
+      relations: {
+        assets: true
+      }
     });
   }
 
@@ -53,8 +56,12 @@ class LabResolver {
   async selfLabs(@Ctx() ctx: AppContext) {
     const octokit = ctx.userOctokit;
     assert(octokit, "Unauthorize");
-    const githubUser = (await octokit.request("GET /user")).data as any;
-    const user = await this.userRepository.findOne({ id: githubUser.id });
+    const githubUser = (await octokit.request("GET /user")).data;
+    const user = await this.userRepository.findOne({
+      where: {
+        id: githubUser.id
+      }
+    });
     if (user?.id) {
       const labs = await this.labRepository.find({
         where: {
@@ -75,9 +82,17 @@ class LabResolver {
   async createLab(@Ctx() ctx: AppContext, @Args() args: CreateLabArgs) {
     const octokit = ctx.userOctokit;
     assert(octokit, "Unauthorize");
-    const githubUser = (await octokit.request("GET /user")).data as any;
-    const user = await this.userRepository.findOne({ id: githubUser.id });
-
+    const githubUser = (await octokit.request("GET /user")).data;
+    const user = await this.userRepository.findOne({
+      where: {
+        id: githubUser.id
+      }
+    });
+    // if user not found throw error
+    if (!user) {
+      throw new Error("User not found");
+    }
+    
     let lab = await this.labRepository.save({
       lab_name: args.lab_name,
       lab_detail: args.lab_detail,
