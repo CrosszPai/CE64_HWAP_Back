@@ -1,10 +1,10 @@
 import { FastifyPluginAsync } from "fastify";
-import { getRepository } from "typeorm";
 import { AppOptions } from "../app";
 import { Hardware, HardwareStatus } from "../schema/hardware.schema";
 import { Queue, QueueStatus } from "../schema/queue.schema";
 import { Working } from "../schema/working.schema";
 import { AppMessage } from "../type";
+import { db } from "../utils/db";
 
 const root: FastifyPluginAsync<AppOptions> = async (
   fastify,
@@ -43,7 +43,7 @@ const root: FastifyPluginAsync<AppOptions> = async (
   });
   fastify.post("/hook", async (req, res) => {
     console.log(req.body);
-    const working = await getRepository(Working).findOne({
+    const working = await db.getRepository(Working).findOne({
       where: {
         repo_url: (req.body as any).url,
       },
@@ -55,13 +55,13 @@ const root: FastifyPluginAsync<AppOptions> = async (
       return;
     }
     // set all working queue status to cancel
-    await getRepository(Queue).update(
+    await db.getRepository(Queue).update(
       { working: working },
       { status: QueueStatus.CANCELED }
     );
 
     // and create new queue
-    await getRepository(Queue).save({
+    await db.getRepository(Queue).save({
       working: working,
       status: QueueStatus.WAITING,
     });
@@ -69,7 +69,7 @@ const root: FastifyPluginAsync<AppOptions> = async (
   });
 
   fastify.get("/cron", async (req, res) => {
-    const queueRepository = getRepository(Queue);
+    const queueRepository = db.getRepository(Queue);
     const queues_count = await queueRepository.count({
       where: { status: QueueStatus.WAITING },
       order: { created_at: "ASC" },
@@ -104,7 +104,7 @@ const root: FastifyPluginAsync<AppOptions> = async (
         opts.redis.set(hardware, HardwareStatus.BUSY);
         console.log(hardware);
 
-        const hw = await getRepository(Hardware).findOne({
+        const hw = await db.getRepository(Hardware).findOne({
           where: { id: hardware },
         });
         console.log(hw);
@@ -113,7 +113,7 @@ const root: FastifyPluginAsync<AppOptions> = async (
           queues[index].status = QueueStatus.WORKING;
           hw.queue = queues[index];
           await Promise.all([
-            getRepository(Hardware).save(hw),
+            db.getRepository(Hardware).save(hw),
             queueRepository.save(queues[index]),
           ]);
           req.server.websocketServer.clients.forEach((e) => {

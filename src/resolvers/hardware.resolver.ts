@@ -8,18 +8,15 @@ import {
   Resolver,
   Root,
 } from "type-graphql";
-import { Service } from "typedi";
-import { InjectRepository } from "typeorm-typedi-extensions";
 import { HardwareRepository } from "../repository/hardware.repository";
 import { Hardware, HardwareStatus } from "../schema/hardware.schema";
 import { Role } from "../schema/user.schema";
 import type { AppContext } from "../type";
 
-@Service()
 @Resolver(Hardware)
 class HardwareResolver {
   constructor(
-    @InjectRepository() private readonly hardwareRepository: HardwareRepository
+    private readonly hardwareRepository: HardwareRepository
   ) {}
   @Authorized(Role.admin)
   @Query((returns) => [Hardware])
