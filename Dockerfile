@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package.json .
 
-RUN npm i
+RUN npm i --legacy-peer-deps
 
 COPY . .
 
@@ -18,7 +18,7 @@ COPY package.json .
 
 COPY wait-for.sh .
 
-RUN npm i --only=prod
+RUN npm i --only=prod --legacy-peer-deps
 
 COPY --from=BUILDER /app/dist /app/dist
 

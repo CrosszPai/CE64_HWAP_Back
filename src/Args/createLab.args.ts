@@ -7,19 +7,19 @@ import { ArgsType, Field } from "type-graphql";
 export class CreateLabArgs {
   @Field((type) => String)
   // @Max(50)
-  lab_name?: string;
+  lab_name: string;
 
   @Field((type) => String)
   // @Max(50)
-  lab_detail?: string;
+  lab_detail: string;
 
   @Field((type) => [GraphQLUpload])
   // @Max(5)
-  assets?: Promise<FileUpload>[];
+  assets: Promise<FileUpload>[];
 
   @Field((type) => Boolean, { nullable: true, defaultValue: false })
-  published?: boolean;
+  published: boolean;
 
   @Field((type) => String)
-  repo_url?: string;
+  repo_url: string;
 }

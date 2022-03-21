@@ -8,18 +8,15 @@ import {
   Resolver,
   Root,
 } from "type-graphql";
-import { Service } from "typedi";
-import { InjectRepository } from "typeorm-typedi-extensions";
 import { UserRepository } from "../repository/user.repository";
 import User, { Role } from "../schema/user.schema";
 import { AppContext } from "../type";
 import Log from "../utils/loggingDocorator";
 
-@Service()
 @Resolver(User)
 class UserResolver {
   constructor(
-    @InjectRepository() private readonly userRepository: UserRepository
+    private readonly userRepository: UserRepository
   ) {}
   @Authorized()
   @Query((returns) => User, { nullable: true })
