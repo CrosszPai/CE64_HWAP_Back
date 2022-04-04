@@ -38,6 +38,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
   const options = { ...opts, schema, redis, private_key };
 
   await db.initialize()
+  await db.synchronize()
   // Do not touch the following lines
 
   // This loads all plugins defined in plugins
