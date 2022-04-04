@@ -114,6 +114,15 @@ services:
     depends_on:
       - master
       - volume
+  ubuntu:
+    build: 
+      context: ./compiler
+      dockerfile: Dockerfile
+    volumes:
+      - ./compiler:/app
+    tty: true
+    ports:
+      - "4444:4444"
 
 volumes:
   data:

@@ -1,0 +1,1 @@
+ /opt/st/stm32cubeide_1.9.0/headless-build.sh -build dev_pr -data /app -importAll /app
