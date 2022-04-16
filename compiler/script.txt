@@ -1,1 +1,6 @@
- /opt/st/stm32cubeide_1.9.0/headless-build.sh -build dev_pr -data /app -importAll /app
+/opt/st/stm32cubeide_1.9.0/headless-build.sh -build dev_pr -data /app -importAll /app
+
+st-info --probe
+
+
+st-flash --reset --serial=303636424646353734393533383637353637323035363336 write led_f7.bin 0x8000000
