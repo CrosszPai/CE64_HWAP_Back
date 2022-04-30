@@ -23,11 +23,13 @@ RUN sudo apt-get install git -y
 
 RUN sudo apt-get install golang-go -y
 
+RUN sudo apt-get install gcc-arm-none-eabi -y
+
 RUN sudo curl -sSfL https://raw.githubusercontent.com/cosmtrek/air/master/install.sh | sh -s
 
 RUN ./install.sh
 
-
+CMD [ "./bin/air" ]
 
 
 

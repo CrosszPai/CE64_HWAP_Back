@@ -1,28 +1,91 @@
+import axios from "axios";
 import { FastifyPluginAsync } from "fastify";
+import FormData = require("form-data");
 import { AppOptions } from "../app";
-import { Hardware, HardwareStatus } from "../schema/hardware.schema";
-import { Queue, QueueStatus } from "../schema/queue.schema";
-import { Working } from "../schema/working.schema";
 import { AppMessage } from "../type";
 import { db } from "../utils/db";
+import * as stream from 'stream';
+import { promisify } from 'util';
+import { createReadStream, createWriteStream, existsSync, mkdirSync } from "fs";
+const finished = promisify(stream.finished);
+
+var dir = './tmp';
+if (!existsSync(dir)) {
+  mkdirSync(dir);
+}
 
 const root: FastifyPluginAsync<AppOptions> = async (
   fastify,
   opts
 ): Promise<void> => {
-  fastify.get("/", { websocket: true }, async function (connection, req) {
+  fastify.get('/ew', async (request, reply) => {
+    reply.send("hello")
+  })
+  fastify.get("/connected_device", { websocket: true }, async function (connection, req) {
     connection.socket.onmessage = async (e) => {
       try {
         const data: AppMessage = JSON.parse(e.data.toString());
-        if (data.event === "connected") {
-          await opts.redis.set(data.id, HardwareStatus.IDLE);
+        console.log(data)
+        if (data.event === 'connected') {
+          await db.hardware.update({
+            where: {
+              id: data.id
+            },
+            data: {
+              status: 'connected'
+            }
+          })
           e.target.send(
             JSON.stringify({
               ...data,
               payload: "success",
             } as AppMessage)
           );
+          await db.hardware.update({
+            where: {
+              id: data.id
+            },
+            data: {
+              status: 'idle'
+            }
+          })
         }
+        if (data.event === 'error') {
+          const hardware = await db.hardware.findFirst({
+            where: {
+              id: data.id
+            },
+            include: {
+              queue: {
+                include: {
+                  working: true
+                }
+              }
+            }
+          })
+          if (hardware && hardware.queueId) {
+            await db.hardware.update({
+              where: {
+                id: data.id
+              },
+              data: {
+                status: 'idle',
+                queueId: null
+              }
+            })
+            await db.queue.update({
+              where: {
+                id: hardware.queueId
+              },
+              data: {
+                status: 'fail',
+                notes: data.payload,
+              }
+            })
+          }
+        }
+        if (data.event === 'finished'){}
+
       } catch (error) {
         console.log(error);
       }
@@ -36,102 +99,112 @@ const root: FastifyPluginAsync<AppOptions> = async (
   });
 
   fastify.get("/check", (req, res) => {
-    req.server.websocketServer.clients.forEach((e) => {
-      e.send("dwwdwwd");
-    });
-    res.send("asd");
+
   });
   fastify.post("/hook", async (req, res) => {
-    console.log(req.body);
-    const working = await db.getRepository(Working).findOne({
-      where: {
-        repo_url: (req.body as any).url,
-      },
-    });
-    if (!working) {
-      res.send({
-        error: "working not found",
-      });
-      return;
+    console.log(__dirname)
+    const body = req.body as {
+      url: string,
+      commit: string
     }
-    // set all working queue status to cancel
-    await db.getRepository(Queue).update(
-      { working: working },
-      { status: QueueStatus.CANCELED }
-    );
-
-    // and create new queue
-    await db.getRepository(Queue).save({
-      working: working,
-      status: QueueStatus.WAITING,
-    });
-    res.send("");
+    let work = await db.working.findFirst({
+      where: {
+        repo_url: body.url
+      },
+      include: {
+        lab: true
+      }
+    })
+    if (work) {
+      let task1 = db.queue.deleteMany({
+        where: {
+          workingId: work.id
+        },
+      })
+      let task2 = db.queue.create({
+        data: {
+          workingId: work.id,
+        }
+      })
+      let [_, queue] = await Promise.all([task1, task2]);
+      // compile code
+      axios.post("http://ubuntu:4444", {
+        url: body.url,
+      }, {
+        headers: {
+          'content-type': "application/json"
+        },
+        responseType: 'stream'
+      }).then(async (response) => {
+        const credentials = Buffer.from('user:password', 'utf-8').toString('base64');
+        const form = new FormData()
+        const writer = createWriteStream(`../tmp/${work?.id}.bin`);
+        response.data.pipe(writer);
+        await finished(writer);
+        form.append('file', createReadStream(`../tmp/${work?.id}.bin`))
+        await axios.post(`http://filer:8888/student/${work?.lab.id}/${queue.id}/bin/app.bin`, form, {
+          headers: {
+            'Authorization': `Basic ${credentials}`,
+            ...form.getHeaders()
+          },
+          data: form,
+        })
+      });
+    }
+    res.send("")
   });
 
   fastify.get("/cron", async (req, res) => {
-    const queueRepository = db.getRepository(Queue);
-    const queues_count = await queueRepository.count({
-      where: { status: QueueStatus.WAITING },
-      order: { created_at: "ASC" },
-    });
-
-    const keys = await opts.redis.KEYS("*");
-    const _hardwares = await opts.redis.mGet(keys);
-
-    const hardwares = keys
-      .map((e, i) => {
-        return [e, _hardwares[i]];
-      })
-      .filter(([k, v]) => v === HardwareStatus.IDLE)
-      .map(([k, v]) => k as string);
-
-    console.log(hardwares);
-
-    if (hardwares.length === 0) {
-      return res.send("no idle hardware");
-    }
-    if (queues_count === 0) {
-      return res.send("no waiting queue");
-    }
-    // apply all queues to idle hardware
-    const queues = await queueRepository.find({
-      where: { status: QueueStatus.WAITING },
-      order: { created_at: "ASC" },
-    });
-    console.log(queues);
-    let assigned = await Promise.all(
-      hardwares.map(async (hardware, index) => {
-        opts.redis.set(hardware, HardwareStatus.BUSY);
-        console.log(hardware);
-
-        const hw = await db.getRepository(Hardware).findOne({
-          where: { id: hardware },
-        });
-        console.log(hw);
-
-        if (hw) {
-          queues[index].status = QueueStatus.WORKING;
-          hw.queue = queues[index];
-          await Promise.all([
-            db.getRepository(Hardware).save(hw),
-            queueRepository.save(queues[index]),
-          ]);
-          req.server.websocketServer.clients.forEach((e) => {
-            e.send(
-              JSON.stringify({
-                id: hardware,
-                event: "income_work",
-                payload: queues[index].working?.repo_url,
-              } as AppMessage)
-            );
-          });
+    const hardwares = await db.hardware.findMany({
+      where: {
+        status: 'idle'
+      }
+    })
+    const queue = await db.queue.findMany({
+      take: hardwares.length,
+      where: {
+        status: 'waiting'
+      },
+      orderBy: {
+        created_at: "asc"
+      },
+      include: {
+        working: true
+      }
+    })
+    
+    for (let i = 0; i < hardwares.length; i++) {
+      const hardware = hardwares[i];
+      const queueItem = queue[i];
+      req.server.websocketServer.clients.forEach((e) => {
+        e.send(
+          JSON.stringify({
+            id: hardware.id,
+            event: "incoming_work",
+            payload: queueItem.id.toString(),
+          } as AppMessage)
+        );
+      });
+      await db.hardware.update({
+        where: {
+          id: hardware.id
+        },
+        data: {
+          status: 'busy',
+          queueId: queueItem.id,
         }
-        return hardware;
       })
-    );
-
-    res.send(assigned.length.toString() + " updated");
-  });
+      await db.queue.update({
+        where: {
+          id: queueItem.id
+        },
+        data: {
+          status: 'working',
+        }
+      })
+    }
+    return ""
+  })
 };
 
 export default root;

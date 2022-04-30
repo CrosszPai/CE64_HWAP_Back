@@ -59,8 +59,6 @@ services:
       - traefik.http.services.graphql.loadbalancer.server.port=3001
       - traefik.http.routers.graphql.entrypoints=websecure
       - traefik.http.routers.graphql.tls.certresolver=let
-  redis:
-    image: redis:6.2.5-alpine
   db:
     image: postgres:13.4-alpine
     env_file: 
@@ -104,6 +102,7 @@ services:
       - traefik.http.services.filer.loadbalancer.server.port=8888
       - traefik.http.routers.filer.entrypoints=websecure
       - traefik.http.routers.filer.tls.certresolver=let
+      - 'traefik.http.routers.filer.basicauth.users=filer:${FILER_PASSWORD}'
   cronjob:
     image: chrislusf/seaweedfs # use a remote image
     command: "cronjob"

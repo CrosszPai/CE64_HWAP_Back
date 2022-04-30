@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/fs"
 	"os/exec"
 	"strings"
@@ -20,15 +21,17 @@ type Data struct {
 func main() {
 	app := fiber.New(fiber.Config{})
 
-	app.Get("/", func(c *fiber.Ctx) error {
-		// p := new(Data)
-		// if err := c.BodyParser(p); err != nil {
-		// 	return err
-		// }
+	app.Post("/", func(c *fiber.Ctx) error {
+		p := new(Data)
+		fmt.Printf("%+v\n", p)
+		if err := c.BodyParser(p); err != nil {
+			return err
+		}
 		id := uuid.New().String()
 		// clone from github
 		println("start clone")
-		clone := exec.Command("git", "clone", "https://github.com/CrosszPai/cube-test", "/app/temp/"+id+"/"+id)
+		// clone := exec.Command("git", "clone", "https://github.com/CrosszPai/F7TEST", "/app/temp/"+id+"/"+id)
+		clone := exec.Command("git", "clone", p.Url, "/app/temp/"+id+"/"+id)
 		_, err := clone.Output()
 		if err != nil {
 			return c.SendString(err.Error())
@@ -67,7 +70,16 @@ func main() {
 			println(err.Error())
 			return c.SendString(err.Error())
 		}
-		err = c.Download("/app/temp/" + id + "/" + filename + "/Release/" + filename + ".elf")
+		// objcopy
+		println("start objcopy")
+		objcopy := exec.Command("arm-none-eabi-objcopy", "-O", "binary", "/app/temp/"+id+"/"+filename+"/Release/"+filename+".elf", "/app/temp/"+id+"/"+filename+"/Release/"+filename+".bin")
+		_, err = objcopy.Output()
+		if err != nil {
+			println(err.Error())
+			return c.SendString(err.Error())
+		}
+
+		err = c.Download("/app/temp/" + id + "/" + filename + "/Release/" + filename + ".bin")
 		if err != nil {
 			return c.SendString(err.Error())
 		}

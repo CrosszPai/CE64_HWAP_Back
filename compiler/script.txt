@@ -2,5 +2,8 @@
 
 st-info --probe
 
+sudo apt-get install gcc-arm-none-eabi stlink-tools
 
-st-flash --reset --serial=303636424646353734393533383637353637323035363336 write led_f7.bin 0x8000000
+arm-none-eabi-objcopy -O binary -S build/F7TEST.elf
+
+st-flash --reset write led_f7.bin 0x8000000

@@ -26,7 +26,7 @@ interface AppContext {
 
 interface AppMessage {
   id: string;
-  event: string;
+  event: 'connected' | 'disconnected' | 'error' | 'incoming_work' | 'finished';
   payload: string;
 }
 export interface OAuth2Profile {
