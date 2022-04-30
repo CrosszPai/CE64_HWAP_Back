@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-import multipart, { FastifyMultipartOptions } from "fastify-multipart";
+import multipart, { FastifyMultipartOptions } from "@fastify/multipart";
 
 /**
  * This plugins adds some utilities to handle http errors

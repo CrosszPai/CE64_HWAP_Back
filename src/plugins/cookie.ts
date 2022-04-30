@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-import cookie, { FastifyCookieOptions } from "fastify-cookie";
+import cookie, { FastifyCookieOptions } from "@fastify/cookie";
 
 /**
  * This plugins adds some utilities to handle http errors

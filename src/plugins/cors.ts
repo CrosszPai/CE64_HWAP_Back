@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-import cors, { FastifyCorsOptions } from "fastify-cors";
+import cors, { FastifyCorsOptions } from "@fastify/cors";
 
 /**
  * This plugins adds some utilities to handle http errors

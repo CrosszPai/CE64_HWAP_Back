@@ -1,6 +1,4 @@
-import User from "./schema/user.schema";
 import { Octokit } from "octokit/dist-types";
-import { createClient } from "redis";
 import WebSocket = require("ws");
 interface AppContext {
   /**
@@ -8,10 +6,6 @@ interface AppContext {
    */
   userOctokit?: Octokit;
 
-  /**
-   * @desc current request user
-   */
-  user?: User;
 
   /**
    * @desc current request user github data
@@ -20,7 +14,6 @@ interface AppContext {
 
   private_key?: string;
 
-  redis: ReturnType<typeof createClient>;
   websocket: WebSocket.Server;
 }
 

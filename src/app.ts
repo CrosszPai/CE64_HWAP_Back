@@ -1,8 +1,7 @@
 import { join } from "path";
-import AutoLoad, { AutoloadPluginOptions } from "fastify-autoload";
+import AutoLoad, { AutoloadPluginOptions } from "@fastify/autoload";
 import { FastifyPluginAsync } from "fastify";
 
-import { createClient } from "redis";
 import { readFileSync } from "fs";
 import WebSocket = require("ws");
 const private_key = readFileSync('./pv-key.pem','utf-8')
@@ -10,7 +9,6 @@ const private_key = readFileSync('./pv-key.pem','utf-8')
 
 export type AppOptions = {
   // Place your custom options for app below here.
-  redis: ReturnType<typeof createClient>
   private_key: string,
   websocket: WebSocket.Server
 } & Partial<AutoloadPluginOptions>;
@@ -20,10 +18,6 @@ const app: FastifyPluginAsync<AppOptions> = async (
   opts
 ): Promise<void> => {
   // Place here your custom code!
-  // const redis = createClient({
-  //   url: 'redis://redis:6379/0',
-  // })
-  // await redis.connect()
 
   const options = { ...opts, private_key };
 

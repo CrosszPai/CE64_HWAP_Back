@@ -1,1 +1,3 @@
-node_modules
+ci_server/**
+compiler/**
+cronjob/**
