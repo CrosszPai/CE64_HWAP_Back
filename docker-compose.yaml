@@ -21,7 +21,7 @@ services:
       - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
   api:
     build:
-      context: .
+      context: ./api
       dockerfile: dev.Dockerfile
     command: sh -c '/app/wait-for.sh db:5432 -- npm run dev'
     env_file:
@@ -31,7 +31,7 @@ services:
     ports:
       - "3001:3001" # dev server port
     volumes:
-      - .:/app
+      - ./api:/app
       - /app/node_modules
     labels:
       - "traefik.enable=true"
