@@ -7,6 +7,7 @@ import { db } from "../utils/db";
 import * as stream from 'stream';
 import { promisify } from 'util';
 import { createReadStream, createWriteStream, existsSync, mkdirSync } from "fs";
+import { queue_status_enum } from "@prisma/client"
 const finished = promisify(stream.finished);
 
 var dir = './tmp';
@@ -84,7 +85,40 @@ const root: FastifyPluginAsync<AppOptions> = async (
             })
           }
         }
-        if (data.event === 'finished'){}
+        if (data.event === 'finished') {
+          const hardware = await db.hardware.findFirst({
+            where: {
+              id: data.id
+            },
+            include: {
+              queue: {
+                include: {
+                  working: true
+                }
+              }
+            }
+          })
+          if (hardware && hardware.queueId) {
+            await db.hardware.update({
+              where: {
+                id: data.id
+              },
+              data: {
+                status: 'idle',
+                queueId: null
+              }
+            })
+            await db.queue.update({
+              where: {
+                id: hardware.queueId
+              },
+              data: {
+                status: data.payload as queue_status_enum,
+              }
+            })
+          }
+
+        }
 
       } catch (error) {
         console.log(error);
@@ -102,7 +136,6 @@ const root: FastifyPluginAsync<AppOptions> = async (
 
   });
   fastify.post("/hook", async (req, res) => {
-    console.log(__dirname)
     const body = req.body as {
       url: string,
       commit: string
@@ -128,6 +161,7 @@ const root: FastifyPluginAsync<AppOptions> = async (
       })
       let [_, queue] = await Promise.all([task1, task2]);
       // compile code
+      console.log('compile')
       axios.post("http://ubuntu:4444", {
         url: body.url,
       }, {
@@ -160,6 +194,9 @@ const root: FastifyPluginAsync<AppOptions> = async (
         status: 'idle'
       }
     })
+    if (hardwares.length == 0) {
+      return ""
+    }
     const queue = await db.queue.findMany({
       take: hardwares.length,
       where: {
@@ -172,7 +209,10 @@ const root: FastifyPluginAsync<AppOptions> = async (
         working: true
       }
     })
-    
+    if (queue.length == 0) {
+      return ""
+    }
+
     for (let i = 0; i < hardwares.length; i++) {
       const hardware = hardwares[i];
       const queueItem = queue[i];
