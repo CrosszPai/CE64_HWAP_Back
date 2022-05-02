@@ -149,17 +149,17 @@ const root: FastifyPluginAsync<AppOptions> = async (
       }
     })
     if (work) {
-      let task1 = db.queue.deleteMany({
+      await db.queue.deleteMany({
         where: {
           workingId: work.id
         },
       })
-      let task2 = db.queue.create({
+      let queue = await db.queue.create({
         data: {
           workingId: work.id,
         }
       })
-      let [_, queue] = await Promise.all([task1, task2]);
+      console.log(queue)
       // compile code
       console.log('compile')
       axios.post("http://ubuntu:4444", {
