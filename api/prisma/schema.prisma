@@ -1,0 +1,101 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model assets {
+  url        String   @id @db.VarChar
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  labId      Int?
+  lab        lab?     @relation(fields: [labId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "lab_assets")
+}
+
+model hardware {
+  id         String               @id @db.VarChar
+  created_at DateTime             @default(now()) @db.Timestamp(6)
+  queueId    Int?                 @unique
+  status     hardware_status_enum @default(created)
+  queue      queue?               @relation(fields: [queueId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "hardware_queue")
+}
+
+model lab {
+  id              Int       @id @default(autoincrement())
+  lab_name        String    @db.VarChar
+  lab_detail      String?   @db.VarChar
+  published       Boolean   @default(false)
+  repo_url        String    @unique @db.VarChar
+  ownerId         Int?
+  user            user?     @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "lab_owner")
+  assets          assets[]
+  working         working[]
+  test_script_url String?   @unique @db.VarChar
+}
+
+model logging {
+  id         Int      @id @default(autoincrement())
+  query      String   @db.VarChar
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  userId     Int?
+  user       user?    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model queue {
+  id         Int               @id @default(autoincrement())
+  created_at DateTime          @default(now()) @db.Timestamp(6)
+  updated_at DateTime          @default(now()) @db.Timestamp(6)
+  status     queue_status_enum @default(waiting)
+  notes      String?           @db.VarChar
+  workingId  Int?
+  working    working?          @relation(fields: [workingId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queue_working")
+  hardware   hardware?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model user {
+  id         Int             @id
+  email      String?         @unique @db.VarChar
+  name       String?         @db.VarChar
+  entered_at DateTime        @default(now()) @db.Timestamp(6)
+  role       user_role_enum?
+  avatar_url String          @db.VarChar
+  lab        lab[]
+  logging    logging[]
+  working    working[]
+}
+
+model working {
+  id         Int      @id @default(autoincrement())
+  repo_url   String   @unique @db.VarChar
+  created_at DateTime @default(now()) @db.Timestamp(6)
+  labId      Int
+  ownerId    Int
+  lab        lab      @relation(fields: [labId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "working_lab")
+  user       user     @relation(fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "working_owner")
+  queue      queue[]
+}
+
+enum user_role_enum {
+  instructor
+  student
+  admin
+}
+
+enum hardware_status_enum {
+  created
+  connected
+  idle
+  busy
+  disconnected
+}
+
+enum queue_status_enum {
+  waiting
+  working
+  pass
+  fail
+}

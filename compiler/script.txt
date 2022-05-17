@@ -1,0 +1,9 @@
+/opt/st/stm32cubeide_1.9.0/headless-build.sh -build dev_pr -data /app -importAll /app
+
+st-info --probe
+
+sudo apt-get install gcc-arm-none-eabi stlink-tools
+
+arm-none-eabi-objcopy -O binary -S build/F7TEST.elf
+
+st-flash --reset write led_f7.bin 0x8000000

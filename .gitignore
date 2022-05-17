@@ -63,3 +63,13 @@ test/types/index.js
 
 # compiled app
 dist
+
+.env
+*.pem
+
+acme.json
+
+package-lock.json
+yarn.lock
+
+compiler/cubeide.sh
